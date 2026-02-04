@@ -8,6 +8,7 @@ use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
+    fs::File,
     io::{BufRead, BufReader},
 };
 
@@ -29,32 +30,59 @@ struct CountryResponse {
     results: Vec<CountryInfo>,
 }
 
-// Global country data initialized once - All 195 UN-recognized countries
-static COUNTRY_DATA: Lazy<HashMap<String, (String, String)>> = Lazy::new(|| {
-    let data = include_str!("../data/countries.csv");
-    let reader = BufReader::new(data.as_bytes());
+const DEFAULT_COUNTRY_DATA_PATH: &str = "data/countries.csv";
+const CSV_FIELD_COUNT: usize = 3;
+
+fn parse_country_data<R: BufRead>(reader: R) -> HashMap<String, (String, String)> {
     let mut data = HashMap::new();
 
-    for (index, line) in reader.lines().enumerate() {
+    for (line_index, line) in reader.lines().skip(1).enumerate() {
+        let file_line_number = line_index + 2;
         let line = line.unwrap_or_else(|error| {
-            panic!("Failed to read country data line {}: {}", index + 1, error);
+            panic!(
+                "Failed to read country data line {}: {}",
+                file_line_number, error
+            );
         });
-        if index == 0 {
+        let line = line.trim();
+        if line.is_empty() {
             continue;
         }
-        let mut parts = line.splitn(3, ',');
+        let mut parts = line.splitn(CSV_FIELD_COUNT, ',');
         let country = parts.next().unwrap_or("").trim();
         let flag = parts.next().unwrap_or("").trim();
         let currency_code = parts.next().unwrap_or("").trim();
-        if !country.is_empty() && !flag.is_empty() && !currency_code.is_empty() {
-            data.insert(
-                country.to_string(),
-                (flag.to_string(), currency_code.to_string()),
+        if country.is_empty() || flag.is_empty() || currency_code.is_empty() {
+            tracing::warn!(
+                "Skipping malformed country data line {}: {}",
+                file_line_number,
+                line
             );
+            continue;
         }
+        data.insert(
+            country.to_string(),
+            (flag.to_string(), currency_code.to_string()),
+        );
     }
 
     data
+}
+
+// Global country data initialized once - All 195 UN-recognized countries
+static COUNTRY_DATA: Lazy<HashMap<String, (String, String)>> = Lazy::new(|| {
+    let (path, path_source) = match std::env::var("COUNTRY_DATA_PATH") {
+        Ok(path) => (path, "COUNTRY_DATA_PATH"),
+        Err(_) => (DEFAULT_COUNTRY_DATA_PATH.to_string(), "default path"),
+    };
+    let file = File::open(&path).unwrap_or_else(|error| {
+        panic!(
+            "Failed to open country data file at {} (source: {}): {}",
+            path, path_source, error
+        )
+    });
+    let reader = BufReader::new(file);
+    parse_country_data(reader)
 });
 
 async fn get_country(Query(params): Query<CountryQuery>) -> Json<CountryResponse> {
@@ -414,5 +442,18 @@ mod tests {
         assert_eq!(country_response.results[2].currency_code, "MMK");
         assert_eq!(country_response.results[3].flag, "🇻🇦"); // Vatican
         assert_eq!(country_response.results[3].currency_code, "EUR");
+    }
+
+    #[test]
+    fn test_parse_country_data_skips_malformed_lines() {
+        let csv_data = "country,flag,currencyCode\nvalid,🏳️,VAL\nmissing-flag,,MFG\nmissing-code,🏳️,\n";
+        let reader = std::io::BufReader::new(csv_data.as_bytes());
+        let data = parse_country_data(reader);
+
+        assert_eq!(data.len(), 1);
+        assert_eq!(
+            data.get("valid"),
+            Some(&(String::from("🏳️"), String::from("VAL")))
+        );
     }
 }
