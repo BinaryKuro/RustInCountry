@@ -4,6 +4,7 @@ use axum::{
     routing::get,
     Router,
 };
+use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -25,8 +26,8 @@ struct CountryResponse {
     results: Vec<CountryInfo>,
 }
 
-// Function to get country data mapping
-fn get_country_data() -> HashMap<String, (String, String)> {
+// Global country data initialized once
+static COUNTRY_DATA: Lazy<HashMap<String, (String, String)>> = Lazy::new(|| {
     let mut data = HashMap::new();
     
     // Format: (flag emoji, currency code)
@@ -52,10 +53,9 @@ fn get_country_data() -> HashMap<String, (String, String)> {
     data.insert("denmark".to_string(), ("🇩🇰".to_string(), "DKK".to_string()));
     
     data
-}
+});
 
 async fn get_country(Query(params): Query<CountryQuery>) -> Json<CountryResponse> {
-    let country_data = get_country_data();
     let mut results = Vec::new();
     
     // Split the based parameter by comma and process each country
@@ -64,7 +64,7 @@ async fn get_country(Query(params): Query<CountryQuery>) -> Json<CountryResponse
     for country_name in countries {
         let country_lower = country_name.to_lowercase();
         
-        if let Some((flag, currency_code)) = country_data.get(&country_lower) {
+        if let Some((flag, currency_code)) = COUNTRY_DATA.get(&country_lower) {
             results.push(CountryInfo {
                 country: country_name.to_string(),
                 flag: flag.clone(),
@@ -87,9 +87,11 @@ async fn main() {
     // Run the server
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000")
         .await
-        .unwrap();
+        .expect("Failed to bind to 0.0.0.0:3000");
     
     println!("Server running on http://0.0.0.0:3000");
     
-    axum::serve(listener, app).await.unwrap();
+    axum::serve(listener, app)
+        .await
+        .expect("Failed to start server");
 }
