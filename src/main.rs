@@ -13,7 +13,7 @@ struct CountryQuery {
     based: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 struct CountryInfo {
     country: String,
     flag: String,
@@ -21,7 +21,7 @@ struct CountryInfo {
     currency_code: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 struct CountryResponse {
     results: Vec<CountryInfo>,
 }
@@ -76,13 +76,18 @@ async fn get_country(Query(params): Query<CountryQuery>) -> Json<CountryResponse
     Json(CountryResponse { results })
 }
 
+// Separate function to create the app router for testing
+fn create_app() -> Router {
+    Router::new().route("/getCountry", get(get_country))
+}
+
 #[tokio::main]
 async fn main() {
     // Initialize tracing
     tracing_subscriber::fmt::init();
 
     // Build our application with a route
-    let app = Router::new().route("/getCountry", get(get_country));
+    let app = create_app();
 
     // Run the server
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000")
@@ -94,4 +99,200 @@ async fn main() {
     axum::serve(listener, app)
         .await
         .expect("Failed to start server");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use axum::{
+        body::Body,
+        http::{Request, StatusCode},
+    };
+    use http_body_util::BodyExt;
+    use tower::ServiceExt;
+
+    #[tokio::test]
+    async fn test_get_country_single() {
+        let app = create_app();
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/getCountry?based=japan")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let body_str = String::from_utf8(body.to_vec()).unwrap();
+        let country_response: CountryResponse = serde_json::from_str(&body_str).unwrap();
+
+        assert_eq!(country_response.results.len(), 1);
+        assert_eq!(country_response.results[0].country, "japan");
+        assert_eq!(country_response.results[0].flag, "🇯🇵");
+        assert_eq!(country_response.results[0].currency_code, "JPY");
+    }
+
+    #[tokio::test]
+    async fn test_get_country_multiple() {
+        let app = create_app();
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/getCountry?based=japan,korea")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let body_str = String::from_utf8(body.to_vec()).unwrap();
+        let country_response: CountryResponse = serde_json::from_str(&body_str).unwrap();
+
+        assert_eq!(country_response.results.len(), 2);
+        assert_eq!(country_response.results[0].country, "japan");
+        assert_eq!(country_response.results[0].flag, "🇯🇵");
+        assert_eq!(country_response.results[0].currency_code, "JPY");
+        assert_eq!(country_response.results[1].country, "korea");
+        assert_eq!(country_response.results[1].flag, "🇰🇷");
+        assert_eq!(country_response.results[1].currency_code, "KRW");
+    }
+
+    #[tokio::test]
+    async fn test_get_country_case_insensitive() {
+        let app = create_app();
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/getCountry?based=JAPAN")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let body_str = String::from_utf8(body.to_vec()).unwrap();
+        let country_response: CountryResponse = serde_json::from_str(&body_str).unwrap();
+
+        assert_eq!(country_response.results.len(), 1);
+        assert_eq!(country_response.results[0].country, "JAPAN");
+        assert_eq!(country_response.results[0].flag, "🇯🇵");
+        assert_eq!(country_response.results[0].currency_code, "JPY");
+    }
+
+    #[tokio::test]
+    async fn test_get_country_unknown() {
+        let app = create_app();
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/getCountry?based=unknown")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let body_str = String::from_utf8(body.to_vec()).unwrap();
+        let country_response: CountryResponse = serde_json::from_str(&body_str).unwrap();
+
+        assert_eq!(country_response.results.len(), 0);
+    }
+
+    #[tokio::test]
+    async fn test_get_country_with_spaces() {
+        let app = create_app();
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/getCountry?based=japan,%20korea,%20usa")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let body_str = String::from_utf8(body.to_vec()).unwrap();
+        let country_response: CountryResponse = serde_json::from_str(&body_str).unwrap();
+
+        assert_eq!(country_response.results.len(), 3);
+        assert_eq!(country_response.results[0].country, "japan");
+        assert_eq!(country_response.results[1].country, "korea");
+        assert_eq!(country_response.results[2].country, "usa");
+    }
+
+    #[tokio::test]
+    async fn test_get_country_mixed_valid_invalid() {
+        let app = create_app();
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/getCountry?based=japan,unknown,korea")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let body_str = String::from_utf8(body.to_vec()).unwrap();
+        let country_response: CountryResponse = serde_json::from_str(&body_str).unwrap();
+
+        // Should only return valid countries
+        assert_eq!(country_response.results.len(), 2);
+        assert_eq!(country_response.results[0].country, "japan");
+        assert_eq!(country_response.results[1].country, "korea");
+    }
+
+    #[tokio::test]
+    async fn test_get_country_all_supported() {
+        let app = create_app();
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/getCountry?based=usa,uk,germany")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let body_str = String::from_utf8(body.to_vec()).unwrap();
+        let country_response: CountryResponse = serde_json::from_str(&body_str).unwrap();
+
+        assert_eq!(country_response.results.len(), 3);
+        assert_eq!(country_response.results[0].flag, "🇺🇸");
+        assert_eq!(country_response.results[0].currency_code, "USD");
+        assert_eq!(country_response.results[1].flag, "🇬🇧");
+        assert_eq!(country_response.results[1].currency_code, "GBP");
+        assert_eq!(country_response.results[2].flag, "🇩🇪");
+        assert_eq!(country_response.results[2].currency_code, "EUR");
+    }
 }

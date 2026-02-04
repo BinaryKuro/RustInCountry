@@ -8,6 +8,7 @@ A REST API built with Rust and Axum framework that provides country information 
 - Support for multiple countries in a single request (comma-separated)
 - Returns country flag emoji and currency code
 - Case-insensitive country name lookup
+- Comprehensive test suite
 
 ## Installation
 
@@ -26,6 +27,39 @@ cargo run
 ```
 
 The server will start on `http://0.0.0.0:3000`
+
+## Testing
+
+The project includes a comprehensive test suite that covers all API functionality.
+
+### Run all tests
+
+```bash
+cargo test
+```
+
+### Run tests with output
+
+```bash
+cargo test -- --nocapture
+```
+
+### Run a specific test
+
+```bash
+cargo test test_get_country_single
+```
+
+### Test Coverage
+
+The test suite includes:
+- ✅ Single country queries
+- ✅ Multiple country queries (comma-separated)
+- ✅ Case-insensitive lookups
+- ✅ Unknown country handling
+- ✅ Whitespace handling
+- ✅ Mixed valid/invalid country queries
+- ✅ Multiple supported countries
 
 ## API Usage
 
