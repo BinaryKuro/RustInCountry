@@ -8,7 +8,6 @@ use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
-    fs::File,
     io::{BufRead, BufReader},
 };
 
@@ -32,13 +31,14 @@ struct CountryResponse {
 
 // Global country data initialized once - All 195 UN-recognized countries
 static COUNTRY_DATA: Lazy<HashMap<String, (String, String)>> = Lazy::new(|| {
-    let path = format!("{}/data/countries.csv", env!("CARGO_MANIFEST_DIR"));
-    let file = File::open(path).expect("Failed to open country data CSV");
-    let reader = BufReader::new(file);
+    let data = include_str!("../data/countries.csv");
+    let reader = BufReader::new(data.as_bytes());
     let mut data = HashMap::new();
 
     for (index, line) in reader.lines().enumerate() {
-        let line = line.expect("Failed to read country data line");
+        let line = line.unwrap_or_else(|error| {
+            panic!("Failed to read country data line {}: {}", index + 1, error);
+        });
         if index == 0 {
             continue;
         }
