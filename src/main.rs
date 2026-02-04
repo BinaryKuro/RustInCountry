@@ -23,6 +23,8 @@ struct CountryInfo {
     flag: String,
     #[serde(rename = "currencyCode")]
     currency_code: String,
+    #[serde(rename = "phoneCode")]
+    phone_code: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -31,9 +33,9 @@ struct CountryResponse {
 }
 
 const DEFAULT_COUNTRY_DATA_PATH: &str = "data/countries.csv";
-const CSV_FIELD_COUNT: usize = 3;
+const CSV_FIELD_COUNT: usize = 4;
 
-fn parse_country_data<R: BufRead>(reader: R) -> HashMap<String, (String, String)> {
+fn parse_country_data<R: BufRead>(reader: R) -> HashMap<String, (String, String, String)> {
     let mut data = HashMap::new();
 
     for (line_index, line) in reader.lines().skip(1).enumerate() {
@@ -52,7 +54,8 @@ fn parse_country_data<R: BufRead>(reader: R) -> HashMap<String, (String, String)
         let country = parts.next().unwrap_or("").trim();
         let flag = parts.next().unwrap_or("").trim();
         let currency_code = parts.next().unwrap_or("").trim();
-        if country.is_empty() || flag.is_empty() || currency_code.is_empty() {
+        let phone_code = parts.next().unwrap_or("").trim();
+        if country.is_empty() || flag.is_empty() || currency_code.is_empty() || phone_code.is_empty() {
             tracing::warn!(
                 "Skipping malformed country data line {}: {}",
                 file_line_number,
@@ -62,7 +65,11 @@ fn parse_country_data<R: BufRead>(reader: R) -> HashMap<String, (String, String)
         }
         data.insert(
             country.to_string(),
-            (flag.to_string(), currency_code.to_string()),
+            (
+                flag.to_string(),
+                currency_code.to_string(),
+                phone_code.to_string(),
+            ),
         );
     }
 
@@ -70,7 +77,7 @@ fn parse_country_data<R: BufRead>(reader: R) -> HashMap<String, (String, String)
 }
 
 // Global country data initialized once - All 195 UN-recognized countries
-static COUNTRY_DATA: Lazy<HashMap<String, (String, String)>> = Lazy::new(|| {
+static COUNTRY_DATA: Lazy<HashMap<String, (String, String, String)>> = Lazy::new(|| {
     let (path, path_source) = match std::env::var("COUNTRY_DATA_PATH") {
         Ok(path) => (path, "COUNTRY_DATA_PATH"),
         Err(_) => (DEFAULT_COUNTRY_DATA_PATH.to_string(), "default path"),
@@ -87,22 +94,37 @@ static COUNTRY_DATA: Lazy<HashMap<String, (String, String)>> = Lazy::new(|| {
 
 async fn get_country(Query(params): Query<CountryQuery>) -> Json<CountryResponse> {
     let mut results = Vec::new();
-    
+
+    if params.based.trim().eq_ignore_ascii_case("all") {
+        let mut countries: Vec<_> = COUNTRY_DATA.iter().collect();
+        countries.sort_by(|(left, _), (right, _)| left.cmp(right));
+        for (country_name, (flag, currency_code, phone_code)) in countries {
+            results.push(CountryInfo {
+                country: country_name.clone(),
+                flag: flag.clone(),
+                currency_code: currency_code.clone(),
+                phone_code: phone_code.clone(),
+            });
+        }
+        return Json(CountryResponse { results });
+    }
+
     // Split the based parameter by comma and process each country
     let countries: Vec<&str> = params.based.split(',').map(|s| s.trim()).collect();
-    
+
     for country_name in countries {
         let country_lower = country_name.to_lowercase();
-        
-        if let Some((flag, currency_code)) = COUNTRY_DATA.get(&country_lower) {
+
+        if let Some((flag, currency_code, phone_code)) = COUNTRY_DATA.get(&country_lower) {
             results.push(CountryInfo {
                 country: country_name.to_string(),
                 flag: flag.clone(),
                 currency_code: currency_code.clone(),
+                phone_code: phone_code.clone(),
             });
         }
     }
-    
+
     Json(CountryResponse { results })
 }
 
@@ -165,6 +187,7 @@ mod tests {
         assert_eq!(country_response.results[0].country, "japan");
         assert_eq!(country_response.results[0].flag, "🇯🇵");
         assert_eq!(country_response.results[0].currency_code, "JPY");
+        assert_eq!(country_response.results[0].phone_code, "+81");
     }
 
     #[tokio::test]
@@ -191,9 +214,11 @@ mod tests {
         assert_eq!(country_response.results[0].country, "japan");
         assert_eq!(country_response.results[0].flag, "🇯🇵");
         assert_eq!(country_response.results[0].currency_code, "JPY");
+        assert_eq!(country_response.results[0].phone_code, "+81");
         assert_eq!(country_response.results[1].country, "korea");
         assert_eq!(country_response.results[1].flag, "🇰🇷");
         assert_eq!(country_response.results[1].currency_code, "KRW");
+        assert_eq!(country_response.results[1].phone_code, "+82");
     }
 
     #[tokio::test]
@@ -220,6 +245,7 @@ mod tests {
         assert_eq!(country_response.results[0].country, "JAPAN");
         assert_eq!(country_response.results[0].flag, "🇯🇵");
         assert_eq!(country_response.results[0].currency_code, "JPY");
+        assert_eq!(country_response.results[0].phone_code, "+81");
     }
 
     #[tokio::test]
@@ -320,10 +346,13 @@ mod tests {
         assert_eq!(country_response.results.len(), 3);
         assert_eq!(country_response.results[0].flag, "🇺🇸");
         assert_eq!(country_response.results[0].currency_code, "USD");
+        assert_eq!(country_response.results[0].phone_code, "+1");
         assert_eq!(country_response.results[1].flag, "🇬🇧");
         assert_eq!(country_response.results[1].currency_code, "GBP");
+        assert_eq!(country_response.results[1].phone_code, "+44");
         assert_eq!(country_response.results[2].flag, "🇩🇪");
         assert_eq!(country_response.results[2].currency_code, "EUR");
+        assert_eq!(country_response.results[2].phone_code, "+49");
     }
 
     #[tokio::test]
@@ -353,6 +382,7 @@ mod tests {
         assert_eq!(country_response.results[0].country, "afghanistan");
         assert_eq!(country_response.results[0].flag, "🇦🇫");
         assert_eq!(country_response.results[0].currency_code, "AFN");
+        assert_eq!(country_response.results[0].phone_code, "+93");
         
         // Argentina (South America)
         assert_eq!(country_response.results[1].country, "argentina");
@@ -363,26 +393,31 @@ mod tests {
         assert_eq!(country_response.results[2].country, "egypt");
         assert_eq!(country_response.results[2].flag, "🇪🇬");
         assert_eq!(country_response.results[2].currency_code, "EGP");
+        assert_eq!(country_response.results[2].phone_code, "+20");
         
         // Fiji (Oceania)
         assert_eq!(country_response.results[3].country, "fiji");
         assert_eq!(country_response.results[3].flag, "🇫🇯");
         assert_eq!(country_response.results[3].currency_code, "FJD");
+        assert_eq!(country_response.results[3].phone_code, "+679");
         
         // Iceland (Europe)
         assert_eq!(country_response.results[4].country, "iceland");
         assert_eq!(country_response.results[4].flag, "🇮🇸");
         assert_eq!(country_response.results[4].currency_code, "ISK");
+        assert_eq!(country_response.results[4].phone_code, "+354");
         
         // Nigeria (Africa)
         assert_eq!(country_response.results[5].country, "nigeria");
         assert_eq!(country_response.results[5].flag, "🇳🇬");
         assert_eq!(country_response.results[5].currency_code, "NGN");
+        assert_eq!(country_response.results[5].phone_code, "+234");
         
         // Thailand (Asia)
         assert_eq!(country_response.results[6].country, "thailand");
         assert_eq!(country_response.results[6].flag, "🇹🇭");
         assert_eq!(country_response.results[6].currency_code, "THB");
+        assert_eq!(country_response.results[6].phone_code, "+66");
     }
 
     #[tokio::test]
@@ -408,8 +443,10 @@ mod tests {
         assert_eq!(country_response.results.len(), 4);
         assert_eq!(country_response.results[0].flag, "🇰🇪");
         assert_eq!(country_response.results[0].currency_code, "KES");
+        assert_eq!(country_response.results[0].phone_code, "+254");
         assert_eq!(country_response.results[1].flag, "🇲🇦");
         assert_eq!(country_response.results[1].currency_code, "MAD");
+        assert_eq!(country_response.results[1].phone_code, "+212");
     }
 
     #[tokio::test]
@@ -436,24 +473,60 @@ mod tests {
         assert_eq!(country_response.results.len(), 4);
         assert_eq!(country_response.results[0].flag, "🇦🇪"); // UAE
         assert_eq!(country_response.results[0].currency_code, "AED");
+        assert_eq!(country_response.results[0].phone_code, "+971");
         assert_eq!(country_response.results[1].flag, "🇨🇿"); // Czechia
         assert_eq!(country_response.results[1].currency_code, "CZK");
+        assert_eq!(country_response.results[1].phone_code, "+420");
         assert_eq!(country_response.results[2].flag, "🇲🇲"); // Burma/Myanmar
         assert_eq!(country_response.results[2].currency_code, "MMK");
+        assert_eq!(country_response.results[2].phone_code, "+95");
         assert_eq!(country_response.results[3].flag, "🇻🇦"); // Vatican
         assert_eq!(country_response.results[3].currency_code, "EUR");
+        assert_eq!(country_response.results[3].phone_code, "+3906698");
     }
 
     #[test]
     fn test_parse_country_data_skips_malformed_lines() {
-        let csv_data = "country,flag,currencyCode\nvalid,🏳️,VAL\nmissing-flag,,MFG\nmissing-code,🏳️,\n";
+        let csv_data =
+            "country,flag,currencyCode,phoneCode\nvalid,🏳️,VAL,+999\nmissing-flag,,MFG,+000\nmissing-code,🏳️,,+000\nmissing-phone,🏳️,VAL,\n";
         let reader = std::io::BufReader::new(csv_data.as_bytes());
         let data = parse_country_data(reader);
 
         assert_eq!(data.len(), 1);
         assert_eq!(
             data.get("valid"),
-            Some(&(String::from("🏳️"), String::from("VAL")))
+            Some(&(
+                String::from("🏳️"),
+                String::from("VAL"),
+                String::from("+999")
+            ))
         );
+    }
+
+    #[tokio::test]
+    async fn test_get_country_all_parameter() {
+        let app = create_app();
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/getCountry?based=all")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let body_str = String::from_utf8(body.to_vec()).unwrap();
+        let country_response: CountryResponse = serde_json::from_str(&body_str).unwrap();
+
+        assert_eq!(country_response.results.len(), COUNTRY_DATA.len());
+        assert!(country_response
+            .results
+            .iter()
+            .any(|country| country.country == "japan" && country.phone_code == "+81"));
     }
 }

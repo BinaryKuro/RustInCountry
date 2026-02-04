@@ -6,7 +6,7 @@ A REST API built with Rust and Axum framework that provides country information 
 
 - Get country information by country name
 - Support for multiple countries in a single request (comma-separated)
-- Returns country flag emoji and currency code
+- Returns country flag emoji, currency code, and phone code
 - Case-insensitive country name lookup
 - **Complete coverage of all 195 UN-recognized countries**
 - Support for common country name aliases (e.g., USA/United States, UAE, Czechia, etc.)
@@ -84,11 +84,12 @@ Response:
 ```json
 {
   "results": [
-    {
-      "country": "japan",
-      "flag": "🇯🇵",
-      "currencyCode": "JPY"
-    }
+     {
+       "country": "japan",
+       "flag": "🇯🇵",
+       "currencyCode": "JPY",
+       "phoneCode": "+81"
+     }
   ]
 }
 ```
@@ -102,15 +103,36 @@ Response:
 ```json
 {
   "results": [
+     {
+       "country": "japan",
+       "flag": "🇯🇵",
+       "currencyCode": "JPY",
+       "phoneCode": "+81"
+     },
+     {
+       "country": "korea",
+       "flag": "🇰🇷",
+       "currencyCode": "KRW",
+       "phoneCode": "+82"
+     }
+  ]
+}
+```
+
+#### All Countries
+```bash
+curl "http://localhost:3000/getCountry?based=all"
+```
+
+Response (truncated):
+```json
+{
+  "results": [
     {
-      "country": "japan",
-      "flag": "🇯🇵",
-      "currencyCode": "JPY"
-    },
-    {
-      "country": "korea",
-      "flag": "🇰🇷",
-      "currencyCode": "KRW"
+      "country": "afghanistan",
+      "flag": "🇦🇫",
+      "currencyCode": "AFN",
+      "phoneCode": "+93"
     }
   ]
 }
