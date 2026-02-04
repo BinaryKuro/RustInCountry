@@ -1,0 +1,216 @@
+country,flag,currencyCode
+afghanistan,🇦🇫,AFN
+albania,🇦🇱,ALL
+algeria,🇩🇿,DZD
+andorra,🇦🇩,EUR
+angola,🇦🇴,AOA
+antigua and barbuda,🇦🇬,XCD
+antigua,🇦🇬,XCD
+argentina,🇦🇷,ARS
+armenia,🇦🇲,AMD
+australia,🇦🇺,AUD
+austria,🇦🇹,EUR
+azerbaijan,🇦🇿,AZN
+bahamas,🇧🇸,BSD
+the bahamas,🇧🇸,BSD
+bahrain,🇧🇭,BHD
+bangladesh,🇧🇩,BDT
+barbados,🇧🇧,BBD
+belarus,🇧🇾,BYN
+belgium,🇧🇪,EUR
+belize,🇧🇿,BZD
+benin,🇧🇯,XOF
+bhutan,🇧🇹,BTN
+bolivia,🇧🇴,BOB
+bosnia and herzegovina,🇧🇦,BAM
+bosnia,🇧🇦,BAM
+botswana,🇧🇼,BWP
+brazil,🇧🇷,BRL
+brunei,🇧🇳,BND
+bulgaria,🇧🇬,BGN
+burkina faso,🇧🇫,XOF
+burundi,🇧🇮,BIF
+cabo verde,🇨🇻,CVE
+cape verde,🇨🇻,CVE
+cambodia,🇰🇭,KHR
+cameroon,🇨🇲,XAF
+canada,🇨🇦,CAD
+central african republic,🇨🇫,XAF
+chad,🇹🇩,XAF
+chile,🇨🇱,CLP
+china,🇨🇳,CNY
+colombia,🇨🇴,COP
+comoros,🇰🇲,KMF
+congo,🇨🇬,XAF
+republic of the congo,🇨🇬,XAF
+democratic republic of the congo,🇨🇩,CDF
+dr congo,🇨🇩,CDF
+drc,🇨🇩,CDF
+costa rica,🇨🇷,CRC
+croatia,🇭🇷,EUR
+cuba,🇨🇺,CUP
+cyprus,🇨🇾,EUR
+czech republic,🇨🇿,CZK
+czechia,🇨🇿,CZK
+côte d'ivoire,🇨🇮,XOF
+ivory coast,🇨🇮,XOF
+denmark,🇩🇰,DKK
+djibouti,🇩🇯,DJF
+dominica,🇩🇲,XCD
+dominican republic,🇩🇴,DOP
+ecuador,🇪🇨,USD
+egypt,🇪🇬,EGP
+el salvador,🇸🇻,USD
+equatorial guinea,🇬🇶,XAF
+eritrea,🇪🇷,ERN
+estonia,🇪🇪,EUR
+eswatini,🇸🇿,SZL
+swaziland,🇸🇿,SZL
+ethiopia,🇪🇹,ETB
+fiji,🇫🇯,FJD
+finland,🇫🇮,EUR
+france,🇫🇷,EUR
+gabon,🇬🇦,XAF
+gambia,🇬🇲,GMD
+the gambia,🇬🇲,GMD
+georgia,🇬🇪,GEL
+germany,🇩🇪,EUR
+ghana,🇬🇭,GHS
+greece,🇬🇷,EUR
+grenada,🇬🇩,XCD
+guatemala,🇬🇹,GTQ
+guinea,🇬🇳,GNF
+guinea-bissau,🇬🇼,XOF
+guyana,🇬🇾,GYD
+haiti,🇭🇹,HTG
+honduras,🇭🇳,HNL
+hungary,🇭🇺,HUF
+iceland,🇮🇸,ISK
+india,🇮🇳,INR
+indonesia,🇮🇩,IDR
+iran,🇮🇷,IRR
+iraq,🇮🇶,IQD
+ireland,🇮🇪,EUR
+israel,🇮🇱,ILS
+italy,🇮🇹,EUR
+jamaica,🇯🇲,JMD
+japan,🇯🇵,JPY
+jordan,🇯🇴,JOD
+kazakhstan,🇰🇿,KZT
+kenya,🇰🇪,KES
+kiribati,🇰🇮,AUD
+north korea,🇰🇵,KPW
+south korea,🇰🇷,KRW
+korea,🇰🇷,KRW
+kuwait,🇰🇼,KWD
+kyrgyzstan,🇰🇬,KGS
+laos,🇱🇦,LAK
+latvia,🇱🇻,EUR
+lebanon,🇱🇧,LBP
+lesotho,🇱🇸,LSL
+liberia,🇱🇷,LRD
+libya,🇱🇾,LYD
+liechtenstein,🇱🇮,CHF
+lithuania,🇱🇹,EUR
+luxembourg,🇱🇺,EUR
+madagascar,🇲🇬,MGA
+malawi,🇲🇼,MWK
+malaysia,🇲🇾,MYR
+maldives,🇲🇻,MVR
+mali,🇲🇱,XOF
+malta,🇲🇹,EUR
+marshall islands,🇲🇭,USD
+mauritania,🇲🇷,MRU
+mauritius,🇲🇺,MUR
+mexico,🇲🇽,MXN
+micronesia,🇫🇲,USD
+moldova,🇲🇩,MDL
+monaco,🇲🇨,EUR
+mongolia,🇲🇳,MNT
+montenegro,🇲🇪,EUR
+morocco,🇲🇦,MAD
+mozambique,🇲🇿,MZN
+myanmar,🇲🇲,MMK
+burma,🇲🇲,MMK
+namibia,🇳🇦,NAD
+nauru,🇳🇷,AUD
+nepal,🇳🇵,NPR
+netherlands,🇳🇱,EUR
+new zealand,🇳🇿,NZD
+nicaragua,🇳🇮,NIO
+niger,🇳🇪,XOF
+nigeria,🇳🇬,NGN
+north macedonia,🇲🇰,MKD
+macedonia,🇲🇰,MKD
+norway,🇳🇴,NOK
+oman,🇴🇲,OMR
+pakistan,🇵🇰,PKR
+palau,🇵🇼,USD
+palestine,🇵🇸,ILS
+panama,🇵🇦,PAB
+papua new guinea,🇵🇬,PGK
+paraguay,🇵🇾,PYG
+peru,🇵🇪,PEN
+philippines,🇵🇭,PHP
+poland,🇵🇱,PLN
+portugal,🇵🇹,EUR
+qatar,🇶🇦,QAR
+romania,🇷🇴,RON
+russia,🇷🇺,RUB
+russian federation,🇷🇺,RUB
+rwanda,🇷🇼,RWF
+saint kitts and nevis,🇰🇳,XCD
+saint lucia,🇱🇨,XCD
+saint vincent and the grenadines,🇻🇨,XCD
+samoa,🇼🇸,WST
+san marino,🇸🇲,EUR
+sao tome and principe,🇸🇹,STN
+saudi arabia,🇸🇦,SAR
+senegal,🇸🇳,XOF
+serbia,🇷🇸,RSD
+seychelles,🇸🇨,SCR
+sierra leone,🇸🇱,SLL
+singapore,🇸🇬,SGD
+slovakia,🇸🇰,EUR
+slovenia,🇸🇮,EUR
+solomon islands,🇸🇧,SBD
+somalia,🇸🇴,SOS
+south africa,🇿🇦,ZAR
+south sudan,🇸🇸,SSP
+spain,🇪🇸,EUR
+sri lanka,🇱🇰,LKR
+sudan,🇸🇩,SDG
+suriname,🇸🇷,SRD
+sweden,🇸🇪,SEK
+switzerland,🇨🇭,CHF
+syria,🇸🇾,SYP
+tajikistan,🇹🇯,TJS
+tanzania,🇹🇿,TZS
+thailand,🇹🇭,THB
+timor-leste,🇹🇱,USD
+east timor,🇹🇱,USD
+togo,🇹🇬,XOF
+tonga,🇹🇴,TOP
+trinidad and tobago,🇹🇹,TTD
+tunisia,🇹🇳,TND
+turkey,🇹🇷,TRY
+turkmenistan,🇹🇲,TMT
+tuvalu,🇹🇻,AUD
+uganda,🇺🇬,UGX
+ukraine,🇺🇦,UAH
+united arab emirates,🇦🇪,AED
+uae,🇦🇪,AED
+united kingdom,🇬🇧,GBP
+uk,🇬🇧,GBP
+united states,🇺🇸,USD
+usa,🇺🇸,USD
+uruguay,🇺🇾,UYU
+uzbekistan,🇺🇿,UZS
+vanuatu,🇻🇺,VUV
+vatican city,🇻🇦,EUR
+vatican,🇻🇦,EUR
+venezuela,🇻🇪,VES
+vietnam,🇻🇳,VND
+yemen,🇾🇪,YER
+zambia,🇿🇲,ZMW
+zimbabwe,🇿🇼,ZWL
